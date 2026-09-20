@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { USER_ARCHIVE_META, TOP_TRACKS } from '../data/mockData';
 import { EchoesLogo } from './EchoesLogo';
 
@@ -15,6 +15,17 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
 }) => {
   const [themeMode, setThemeMode] = useState<'paper' | 'dark'>('paper');
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -65,6 +76,9 @@ BARCODE: ||||| | |||| ||| |||||| ||||
   return (
     <div
       id="receipt-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="receipt-modal-title"
       className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -76,6 +90,7 @@ BARCODE: ||||| | |||| ||| |||||| ||||
           <div className="flex items-center gap-1.5 bg-[#1d1f28] p-1 rounded-lg border border-[#33343e]">
             <button
               onClick={() => setThemeMode('paper')}
+              aria-pressed={isPaper}
               className={`px-3 py-1 rounded text-xs font-mono transition-colors ${
                 isPaper
                   ? 'bg-amber-100 text-stone-900 font-bold shadow-sm'
@@ -86,6 +101,7 @@ BARCODE: ||||| | |||| ||| |||||| ||||
             </button>
             <button
               onClick={() => setThemeMode('dark')}
+              aria-pressed={!isPaper}
               className={`px-3 py-1 rounded text-xs font-mono transition-colors ${
                 !isPaper
                   ? 'bg-[#3c0091] text-[#d0bcff] font-bold shadow-sm'
@@ -99,6 +115,7 @@ BARCODE: ||||| | |||| ||| |||||| ||||
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopyText}
+              aria-label="Copy receipt plain text summary to clipboard"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#282a32] hover:bg-[#33343e] text-[#cbc3d7] hover:text-[#e2e1ee] text-xs font-mono border border-[#494454] transition-colors"
             >
               <span className="material-symbols-outlined text-sm">
@@ -108,6 +125,7 @@ BARCODE: ||||| | |||| ||| |||||| ||||
             </button>
             <button
               onClick={handlePrint}
+              aria-label="Print thermal receipt"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#3c0091] hover:bg-[#4f319c] text-[#d0bcff] text-xs font-mono border border-[#d0bcff]/40 transition-colors"
             >
               <span className="material-symbols-outlined text-sm">print</span>
@@ -115,6 +133,7 @@ BARCODE: ||||| | |||| ||| |||||| ||||
             </button>
             <button
               onClick={onClose}
+              aria-label="Close receipt modal"
               className="w-8 h-8 rounded-lg bg-[#282a32] text-[#958ea0] hover:text-white flex items-center justify-center transition-colors"
             >
               <span className="material-symbols-outlined text-base">close</span>
@@ -144,7 +163,7 @@ BARCODE: ||||| | |||| ||| |||||| ||||
                   />
                 </div>
               </div>
-              <h2 className="font-syne font-black text-xl tracking-[0.2em] uppercase">
+              <h2 id="receipt-modal-title" className="font-syne font-black text-xl tracking-[0.2em] uppercase">
                 ECHOES ARCHIVE
               </h2>
               <p className="text-[10px] font-bold opacity-80 uppercase tracking-[0.25em]">

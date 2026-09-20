@@ -61,6 +61,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
         {onOpenMobileMenu && (
           <button
             onClick={onOpenMobileMenu}
+            aria-label="Open mobile navigation menu"
             className="md:hidden p-2 rounded-lg bg-[#191b24] text-[#e2e1ee] border border-[#33343e]"
           >
             <span className="material-symbols-outlined text-lg">menu</span>
@@ -85,11 +86,12 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
       </div>
 
       {/* Center: Filter Pills (Desktop) */}
-      <div className="hidden lg:flex items-center gap-1 bg-[#191b24] p-1 rounded-lg border border-[#33343e]/60">
+      <nav aria-label="Global Era Filter" className="hidden lg:flex items-center gap-1 bg-[#191b24] p-1 rounded-lg border border-[#33343e]/60">
         {filterOptions.map((opt) => (
           <button
             key={opt.id}
             onClick={() => onChangeFilter(opt.id)}
+            aria-pressed={activeFilter === opt.id}
             className={`px-3 py-1 rounded text-xs font-mono transition-all duration-150 ${
               activeFilter === opt.id
                 ? 'bg-[#3c0091] text-[#d0bcff] font-bold shadow-sm'
@@ -99,7 +101,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
             {opt.label}
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* Right: Quick Search, Sound State & Export Receipt Button */}
       <div className="flex items-center gap-2 sm:gap-3">
@@ -107,6 +109,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
         <button
           id="btn-open-search"
           onClick={onOpenSearch}
+          aria-label="Open search archive command palette (Press Cmd+K)"
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#191b24] hover:bg-[#282a32] text-[#958ea0] hover:text-[#e2e1ee] border border-[#33343e] text-xs font-mono transition-colors"
         >
           <span className="material-symbols-outlined text-sm text-[#d0bcff]">search</span>
@@ -120,6 +123,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
         {isPlayingSound && (
           <button
             onClick={onTogglePlaySound}
+            aria-label={`Toggle audio playback. Currently playing ${currentTrackName || 'audio'}`}
             className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#3c0091]/60 border border-[#d0bcff]/40 text-[#d0bcff] text-xs font-mono animate-pulse"
             title={`Playing: ${currentTrackName || 'Audio Memory'}`}
           >
@@ -134,6 +138,7 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
         <button
           id="btn-header-export-receipt"
           onClick={onOpenReceipt}
+          aria-label="Open archival thermal receipt modal"
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#d0bcff] hover:bg-white text-[#3c0091] font-syne text-xs font-bold tracking-wider transition-all duration-150 active:scale-95 shadow-sm"
         >
           <span className="material-symbols-outlined text-sm">receipt_long</span>

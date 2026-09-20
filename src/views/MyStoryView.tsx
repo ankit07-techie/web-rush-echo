@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CHAPTERS } from '../data/mockData';
 import DancingLetters from '@/components/ui/dancing-letters';
 
@@ -16,6 +16,17 @@ export const MyStoryView: React.FC<MyStoryViewProps> = ({
   const [copiedShare, setCopiedShare] = useState(false);
 
   const chapter = CHAPTERS[activeChapterIndex];
+
+  useEffect(() => {
+    if (!showShareModal) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowShareModal(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showShareModal]);
 
   const handlePrev = () => {
     setActiveChapterIndex((prev) => (prev > 0 ? prev - 1 : CHAPTERS.length - 1));
@@ -327,6 +338,9 @@ export const MyStoryView: React.FC<MyStoryViewProps> = ({
       {showShareModal && (
         <div
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Share Chapter ${chapter.number} Tape`}
           onClick={(e) => {
             if (e.target === e.currentTarget) setShowShareModal(false);
           }}
@@ -338,7 +352,8 @@ export const MyStoryView: React.FC<MyStoryViewProps> = ({
               </h3>
               <button
                 onClick={() => setShowShareModal(false)}
-                className="text-[#958ea0] hover:text-white"
+                aria-label="Close share modal"
+                className="text-[#958ea0] hover:text-white p-1 rounded-lg hover:bg-[#282a32] transition-colors"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>

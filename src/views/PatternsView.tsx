@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BEHAVIORAL_PATTERNS } from '../data/mockData';
 import DancingLetters from '@/components/ui/dancing-letters';
 
@@ -22,6 +22,17 @@ export const PatternsView: React.FC<PatternsViewProps> = ({
 }) => {
   const [selectedPattern, setSelectedPattern] = useState(BEHAVIORAL_PATTERNS[0]);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setDrawerOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [drawerOpen]);
 
   const handleInspectPattern = (pattern: typeof BEHAVIORAL_PATTERNS[0]) => {
     setSelectedPattern(pattern);
@@ -133,6 +144,9 @@ export const PatternsView: React.FC<PatternsViewProps> = ({
       {drawerOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-end animate-in fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Pattern ${selectedPattern.number} Thermal Receipt Details`}
           onClick={(e) => {
             if (e.target === e.currentTarget) setDrawerOpen(false);
           }}
@@ -149,6 +163,7 @@ export const PatternsView: React.FC<PatternsViewProps> = ({
                 </div>
                 <button
                   onClick={() => setDrawerOpen(false)}
+                  aria-label="Close pattern receipt drawer"
                   className="w-8 h-8 rounded-lg bg-[#282a32] text-[#958ea0] hover:text-white flex items-center justify-center transition-colors"
                 >
                   <span className="material-symbols-outlined text-base">close</span>

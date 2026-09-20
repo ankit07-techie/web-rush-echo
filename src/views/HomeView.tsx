@@ -540,6 +540,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     <img
                       src={artist.avatarUrl}
                       alt={artist.name}
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
                       className="w-12 h-12 rounded-lg object-cover border border-[#494454]"
                     />
                     <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#3c0091] text-[#d0bcff] font-mono text-[10px] font-bold flex items-center justify-center border border-[#d0bcff]/40">
@@ -646,7 +649,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="flex items-center gap-4">
           <img
             src={TOP_TRACKS[1].albumCover}
-            alt="Holocene"
+            alt="Holocene album cover"
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
             className="w-16 h-16 rounded-xl object-cover border border-[#d0bcff]/40 shadow-lg shrink-0"
           />
           <div>

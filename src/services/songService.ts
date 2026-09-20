@@ -53,6 +53,19 @@ export interface SpotApiSearchResponse {
   };
 }
 
+interface ITunesTrackResult {
+  trackId?: number;
+  trackName?: string;
+  trackNumber?: number;
+  trackTimeMillis?: number;
+  collectionName?: string;
+  collectionId?: number;
+  artistId?: number;
+  artistName?: string;
+  artworkUrl100?: string;
+  previewUrl?: string;
+}
+
 // In-memory query cache for rapid repeat searches
 const queryCache = new Map<string, SpotApiTrackItem[]>();
 
@@ -105,7 +118,7 @@ export class Song {
       const json = await res.json();
       const results = json.results || [];
 
-      const items: SpotApiTrackItem[] = results.map((track: any, index: number) => {
+      const items: SpotApiTrackItem[] = results.map((track: ITunesTrackResult, index: number) => {
         const id = String(track.trackId || `track_${offset + index}`);
         const artwork = (track.artworkUrl100 || '').replace('100x100bb', '600x600bb');
         

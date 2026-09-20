@@ -32,7 +32,16 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       <div className="flex flex-col">
         {/* Brand Header */}
         <div className="p-5 pb-4 border-b border-[#33343e]/30">
-          <div className="mb-3 cursor-pointer" onClick={() => onSelectTab('home')}>
+          <div
+            className="mb-3 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#d0bcff] rounded-lg"
+            onClick={() => onSelectTab('home')}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') onSelectTab('home');
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Go to Echoes Archive Home"
+          >
             <EchoesLogo variant="horizontal" size="md" interactive={true} />
           </div>
 
@@ -45,7 +54,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
         </div>
 
         {/* Navigation Items */}
-        <nav className="p-3 space-y-1">
+        <nav aria-label="Primary Navigation" className="p-3 space-y-1">
           <div className="px-3 py-1.5 text-[10px] font-mono tracking-widest text-[#958ea0]/70 uppercase">
             Navigation Ledger
           </div>
@@ -56,6 +65,7 @@ export const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
                 key={item.id}
                 id={`nav-tab-${item.id}`}
                 onClick={() => onSelectTab(item.id)}
+                aria-current={isActive ? 'page' : undefined}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-left transition-all duration-150 group ${
                   isActive
                     ? 'bg-[#282a32] text-[#d0bcff] font-semibold shadow-inner border border-[#494454]/50'

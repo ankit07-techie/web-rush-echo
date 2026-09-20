@@ -306,7 +306,14 @@ for idx, item in enumerate(data):
                       <div className="flex items-center gap-3.5 min-w-0">
                         <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-[#11131b] border border-[#33343e]">
                           {cover ? (
-                            <img src={cover} alt={track.name} className="w-full h-full object-cover" />
+                            <img
+                              src={cover}
+                              alt={track.name}
+                              loading="lazy"
+                              decoding="async"
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center font-mono text-xs text-[#958ea0]">
                               {idx + 1}
@@ -452,6 +459,9 @@ for idx, item in enumerate(data):
                           <img
                             src={track.albumCover}
                             alt={track.title}
+                            loading="lazy"
+                            decoding="async"
+                            referrerPolicy="no-referrer"
                             className="w-12 h-12 rounded-lg object-cover border border-[#494454]"
                           />
                           <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[#11131b] text-[#d0bcff] font-mono text-[10px] font-bold flex items-center justify-center border border-[#33343e]">
@@ -510,6 +520,9 @@ for idx, item in enumerate(data):
                     <img
                       src={selectedTrack.albumCover}
                       alt={selectedTrack.title}
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
                       className="w-16 h-16 rounded-xl object-cover border border-[#d0bcff]/40 shadow-md"
                     />
                     <div>

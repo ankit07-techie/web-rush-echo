@@ -259,10 +259,13 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
   const defaultArtwork = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80';
   const artwork = currentTrack.artworkUrl || defaultArtwork;
   const hasAudioPreview = Boolean(currentTrack.previewUrl);
+  const safeSpotifyId = (currentTrack.spotifyId || '').replace(/[^a-zA-Z0-9]/g, '') || '3BQHpFgAp4l80e1XGRIjnv';
 
   return (
-    <div
+    <aside
       id="sound-capsule-player"
+      role="region"
+      aria-label="Audio Playback Bar"
       className={`fixed bottom-5 right-4 sm:right-6 z-40 bg-[#1d1f28]/95 backdrop-blur-xl border border-[#494454] rounded-2xl shadow-2xl transition-all duration-300 text-[#e2e1ee] animate-in fade-in slide-in-from-bottom-4 ${
         isExpanded ? 'w-[calc(100vw-2rem)] sm:w-[460px] p-5' : 'w-[calc(100vw-2rem)] sm:w-[420px] p-3.5'
       }`}
@@ -273,7 +276,10 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
         <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-[#494454] bg-[#11131b]">
           <img
             src={artwork}
-            alt={currentTrack.title}
+            alt={`${currentTrack.title} by ${currentTrack.artist}`}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
             className="w-full h-full object-cover"
           />
           {isPlaying && (
@@ -313,6 +319,7 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
           <button
             id="btn-toggle-sound-capsule"
             onClick={onTogglePlay}
+            aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
             className="w-9 h-9 rounded-full bg-[#d0bcff] text-[#3c0091] flex items-center justify-center hover:bg-white transition-transform active:scale-95 shadow-md"
             title={isPlaying ? 'Pause' : 'Play Audio'}
           >
@@ -324,6 +331,7 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
           <button
             id="btn-toggle-sound-loop"
             onClick={toggleLoop}
+            aria-label={isLooping ? 'Disable loop repeat' : 'Enable loop repeat'}
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
               isLooping
                 ? 'bg-[#3c0091] text-[#ffb95f] border border-[#ffb95f]/70 shadow-[0_0_12px_rgba(255,185,95,0.4)]'
@@ -338,6 +346,7 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
 
           <button
             onClick={() => setIsExpanded((prev) => !prev)}
+            aria-label={isExpanded ? 'Collapse expanded audio controls' : 'Expand audio controls and Spotify embed'}
             className="w-7 h-7 rounded-full text-[#958ea0] hover:text-[#e2e1ee] hover:bg-[#33343e]/50 flex items-center justify-center transition-colors"
             title={isExpanded ? 'Collapse' : 'Expand Controls & Spotify'}
           >
@@ -348,6 +357,7 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
 
           <button
             onClick={onClose}
+            aria-label="Close audio player"
             className="w-7 h-7 rounded-full text-[#958ea0] hover:text-[#e2e1ee] hover:bg-[#33343e]/50 flex items-center justify-center transition-colors"
             title="Close Player"
           >
@@ -367,6 +377,10 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
             value={currentTime}
             onChange={handleSeek}
             disabled={!hasAudioPreview}
+            aria-label="Track playback seek position"
+            aria-valuemin={0}
+            aria-valuemax={duration || 30}
+            aria-valuenow={currentTime}
             className="w-full h-1 bg-[#282a32] rounded-lg appearance-none cursor-pointer accent-[#d0bcff] disabled:opacity-50"
           />
         </div>
@@ -436,7 +450,7 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
             <div className="rounded-xl overflow-hidden bg-black/40 border border-[#33343e] p-1">
               <iframe
                 title="Spotify Track Player"
-                src={`https://open.spotify.com/embed/track/${currentTrack.spotifyId || '3BQHpFgAp4l80e1XGRIjnv'}?utm_source=generator&theme=0`}
+                src={`https://open.spotify.com/embed/track/${safeSpotifyId}?utm_source=generator&theme=0`}
                 width="100%"
                 height="80"
                 frameBorder="0"
@@ -452,6 +466,7 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsMuted((prev) => !prev)}
+                aria-label={isMuted ? 'Unmute audio playback' : 'Mute audio playback'}
                 className="hover:text-white"
                 title={isMuted ? 'Unmute' : 'Mute'}
               >
@@ -465,6 +480,10 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
                 max={1}
                 step={0.05}
                 value={isMuted ? 0 : volume}
+                aria-label="Volume output level"
+                aria-valuemin={0}
+                aria-valuemax={1}
+                aria-valuenow={isMuted ? 0 : volume}
                 onChange={(e) => {
                   setVolume(parseFloat(e.target.value));
                   if (isMuted) setIsMuted(false);
@@ -497,6 +516,6 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </aside>
   );
 };

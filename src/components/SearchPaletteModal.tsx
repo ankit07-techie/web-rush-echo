@@ -105,6 +105,9 @@ export const SearchPaletteModal: React.FC<SearchPaletteModalProps> = ({
   return (
     <div
       id="search-palette-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Archive Search Command Palette"
       className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-start justify-center pt-16 sm:pt-20 p-4 animate-in fade-in"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -119,6 +122,12 @@ export const SearchPaletteModal: React.FC<SearchPaletteModalProps> = ({
             autoFocus
             type="text"
             value={query}
+            aria-label="Search audio archive, artists, or live catalog"
+            placeholder={
+              activeTab === 'spotapi'
+                ? 'Query SpotAPI live catalog (e.g. Weezer, Radiohead)...'
+                : 'Search memory archive, artists, or eras...'
+            }
             onChange={(e) => {
               const val = e.target.value;
               setQuery(val);
@@ -131,7 +140,6 @@ export const SearchPaletteModal: React.FC<SearchPaletteModalProps> = ({
                 handleSpotApiQuery(query);
               }
             }}
-            placeholder="Query songs (e.g. 'weezer'), artists, albums, or ledger records..."
             className="bg-transparent border-none outline-none text-sm w-full placeholder:text-[#958ea0] font-sans"
           />
           {query && (
@@ -231,7 +239,14 @@ export const SearchPaletteModal: React.FC<SearchPaletteModalProps> = ({
                           {/* Artwork & Index */}
                           <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-[#11131b] border border-[#33343e]">
                             {cover ? (
-                              <img src={cover} alt={track.name} className="w-full h-full object-cover" />
+                              <img
+                                src={cover}
+                                alt={track.name}
+                                loading="lazy"
+                                decoding="async"
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center font-mono text-xs text-[#958ea0]">
                                 {idx + 1}

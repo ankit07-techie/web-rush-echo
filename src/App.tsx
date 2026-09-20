@@ -139,7 +139,7 @@ export default function App() {
           onOpenMobileMenu={() => setIsMobileNavOpen(true)}
         />
 
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto focus:outline-none">
           {currentTab === 'home' && (
             <HomeView
               onNavigateTab={setCurrentTab}
@@ -186,7 +186,7 @@ export default function App() {
       </div>
 
       {/* Mobile Bottom Navigation Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#11131b]/95 backdrop-blur-lg border-t border-[#33343e] px-2 py-2 flex items-center justify-around">
+      <nav aria-label="Mobile Bottom Navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#11131b]/95 backdrop-blur-lg border-t border-[#33343e] px-2 py-2 flex items-center justify-around">
         {[
           { id: 'home' as ViewTab, label: 'Home', icon: 'home' },
           { id: 'my-story' as ViewTab, label: 'Story', icon: 'auto_stories' },
@@ -198,6 +198,7 @@ export default function App() {
           <button
             key={item.id}
             onClick={() => setCurrentTab(item.id)}
+            aria-current={currentTab === item.id ? 'page' : undefined}
             className={`flex flex-col items-center gap-1 py-1 px-2 rounded-lg text-[10px] font-syne uppercase tracking-wider transition-colors ${
               currentTab === item.id
                 ? 'text-[#d0bcff] font-bold'
@@ -208,7 +209,7 @@ export default function App() {
             <span>{item.label}</span>
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* Interactive Sound Capsule Player */}
       {isPlayerVisible && currentTrack && (
