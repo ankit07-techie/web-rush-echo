@@ -38,11 +38,19 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
   const oscRef = useRef<OscillatorNode[]>([]);
   const gainRef = useRef<GainNode | null>(null);
   const onTogglePlayRef = useRef(onTogglePlay);
+  const isLoopingRef = useRef(isLooping);
   const lastLoadedUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     onTogglePlayRef.current = onTogglePlay;
   }, [onTogglePlay]);
+
+  useEffect(() => {
+    isLoopingRef.current = isLooping;
+    if (audioRef.current) {
+      audioRef.current.loop = isLooping;
+    }
+  }, [isLooping]);
 
   // Setup HTML Audio element for real preview playback
   useEffect(() => {
@@ -53,6 +61,15 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
 
       audio.ontimeupdate = () => {
         setCurrentTime(audio.currentTime);
+
+        // Safeguard for browsers or cross-origin streams where loop doesn't restart automatically
+        if (isLoopingRef.current && audio.duration > 0) {
+          if (audio.currentTime >= audio.duration - 0.2) {
+            audio.currentTime = 0;
+            setCurrentTime(0);
+            audio.play().catch(() => {});
+          }
+        }
       };
 
       audio.onloadedmetadata = () => {
@@ -62,9 +79,24 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
       };
 
       audio.onended = () => {
-        if (!audio.loop) {
+        if (isLoopingRef.current || audio.loop) {
+          audio.currentTime = 0;
+          setCurrentTime(0);
+          const playPromise = audio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch((err) => {
+              if (err.name !== 'AbortError') {
+                console.warn('Audio loop replay notice:', err);
+              }
+            });
+          }
+        } else {
           onTogglePlayRef.current();
         }
+      };
+
+      audio.onerror = (e) => {
+        console.warn('Audio element error, falling back to synth if playing:', e);
       };
     }
   }, []);
@@ -205,6 +237,25 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
     }
   };
 
+  const toggleLoop = () => {
+    setIsLooping((prev) => {
+      const next = !prev;
+      isLoopingRef.current = next;
+      if (audioRef.current) {
+        audioRef.current.loop = next;
+        // If enabling loop and audio reached the end or is near end while playing, rewind & replay
+        if (next && isPlaying) {
+          if (audioRef.current.ended || (audioRef.current.duration > 0 && audioRef.current.currentTime >= audioRef.current.duration - 0.3)) {
+            audioRef.current.currentTime = 0;
+            setCurrentTime(0);
+            audioRef.current.play().catch(() => {});
+          }
+        }
+      }
+      return next;
+    });
+  };
+
   const defaultArtwork = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80';
   const artwork = currentTrack.artworkUrl || defaultArtwork;
   const hasAudioPreview = Boolean(currentTrack.previewUrl);
@@ -234,10 +285,16 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
 
         {/* Track Metadata */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-mono text-[9px] uppercase tracking-wider text-[#ffb95f] px-1.5 py-0.2 rounded bg-[#ffb95f]/10 border border-[#ffb95f]/30">
               {hasAudioPreview ? 'AUDITED AUDIO' : 'SYNTH HARMONIC'}
             </span>
+            {isLooping && (
+              <span className="font-mono text-[9px] uppercase tracking-wider text-[#ffb95f] px-1.5 py-0.2 rounded bg-[#ffb95f]/20 border border-[#ffb95f]/50 flex items-center gap-0.5">
+                <span className="material-symbols-outlined text-[10px]">repeat</span>
+                LOOP ON
+              </span>
+            )}
             <span className="font-mono text-[10px] text-[#cbc3d7]/70">
               {formatTime(currentTime)} / {hasAudioPreview ? formatTime(duration) : (currentTrack.duration || '3:45')}
             </span>
@@ -261,6 +318,21 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
           >
             <span className="material-symbols-outlined text-xl">
               {isPlaying ? 'pause' : 'play_arrow'}
+            </span>
+          </button>
+
+          <button
+            id="btn-toggle-sound-loop"
+            onClick={toggleLoop}
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+              isLooping
+                ? 'bg-[#3c0091] text-[#ffb95f] border border-[#ffb95f]/70 shadow-[0_0_12px_rgba(255,185,95,0.4)]'
+                : 'text-[#958ea0] hover:text-[#e2e1ee] hover:bg-[#33343e]/50 border border-transparent'
+            }`}
+            title={isLooping ? 'Loop Active: Repeating continuously' : 'Enable Loop / Repeat'}
+          >
+            <span className="material-symbols-outlined text-lg">
+              {isLooping ? 'repeat_on' : 'repeat'}
             </span>
           </button>
 
@@ -403,16 +475,19 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
 
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setIsLooping((prev) => !prev)}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[11px] ${
+                id="btn-expanded-loop"
+                onClick={toggleLoop}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-mono font-medium transition-all ${
                   isLooping
-                    ? 'border-[#d0bcff] text-[#d0bcff] bg-[#3c0091]/30'
-                    : 'border-[#33343e] text-[#958ea0] hover:text-[#e2e1ee]'
+                    ? 'border-[#ffb95f] text-[#ffb95f] bg-[#ffb95f]/15 shadow-[0_0_10px_rgba(255,185,95,0.25)] font-bold'
+                    : 'border-[#33343e] text-[#958ea0] hover:text-[#e2e1ee] hover:border-[#494454]'
                 }`}
-                title="Toggle Loop"
+                title={isLooping ? 'Loop Active (Repeating continuously)' : 'Enable Repeat / Loop'}
               >
-                <span className="material-symbols-outlined text-xs">repeat</span>
-                LOOP
+                <span className="material-symbols-outlined text-sm">
+                  {isLooping ? 'repeat_on' : 'repeat'}
+                </span>
+                {isLooping ? 'LOOP: ON' : 'LOOP: OFF'}
               </button>
 
               <span className="text-[10px] text-[#958ea0]">
