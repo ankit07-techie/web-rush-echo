@@ -13,9 +13,10 @@ export const ArtistsAndSongsView: React.FC<ArtistsAndSongsViewProps> = ({
   onOpenReceipt,
   onPlaySong,
 }) => {
-  const [activeCatalogMode, setActiveCatalogMode] = useState<'audited' | 'spotapi'>('audited');
+  const [activeCatalogMode, setActiveCatalogMode] = useState<'audited' | 'artists' | 'spotapi'>('audited');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [artistGenreFilter, setArtistGenreFilter] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'plays' | 'hours' | 'recent'>('plays');
   const [selectedTrack, setSelectedTrack] = useState<SongRecord>(TOP_TRACKS[0]); // Kyoto by default
   const [copiedJson, setCopiedJson] = useState(false);
@@ -112,34 +113,237 @@ export const ArtistsAndSongsView: React.FC<ArtistsAndSongsViewProps> = ({
         </div>
 
         {/* Catalog Mode Toggles */}
-        <div className="flex items-center gap-2 bg-[#191b24] p-1.5 rounded-xl border border-[#33343e]">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-[#191b24] p-1.5 rounded-xl border border-[#33343e] overflow-x-auto">
           <button
             onClick={() => setActiveCatalogMode('audited')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-1.5 ${
               activeCatalogMode === 'audited'
                 ? 'bg-[#3c0091] text-[#d0bcff] font-bold border border-[#d0bcff]/40 shadow-sm'
                 : 'text-[#958ea0] hover:text-[#e2e1ee]'
             }`}
           >
             <span className="material-symbols-outlined text-sm">inventory_2</span>
-            AUDITED LEDGER
+            AUDITED TRACKS
+          </button>
+
+          <button
+            onClick={() => setActiveCatalogMode('artists')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeCatalogMode === 'artists'
+                ? 'bg-[#3c0091] text-[#d0bcff] font-bold border border-[#d0bcff]/40 shadow-sm'
+                : 'text-[#958ea0] hover:text-[#e2e1ee]'
+            }`}
+          >
+            <span className="material-symbols-outlined text-sm">person</span>
+            ARTIST DOSSIERS ({TOP_ARTISTS.length})
           </button>
 
           <button
             onClick={() => setActiveCatalogMode('spotapi')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors whitespace-nowrap flex items-center gap-1.5 ${
               activeCatalogMode === 'spotapi'
                 ? 'bg-emerald-950 text-emerald-400 font-bold border border-emerald-500/50 shadow-sm'
                 : 'text-[#958ea0] hover:text-[#e2e1ee]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            SPOTAPI LIVE QUERY ({spotResults.length})
+            SPOTAPI LIVE ({spotResults.length})
           </button>
         </div>
       </div>
 
-      {/* VIEW MODE 1: SPOTAPI LIVE SONG QUERY & PLAYBACK */}
+      {/* VIEW MODE 1: ARTIST DOSSIERS */}
+      {activeCatalogMode === 'artists' && (
+        <div className="space-y-6 animate-in fade-in">
+          {/* Filter and Overview */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#191b24] p-4 rounded-2xl border border-[#33343e]">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+              <span className="font-mono text-xs text-[#958ea0] shrink-0 mr-1">GENRE:</span>
+              {['All', 'Indie Folk', 'Electronic', 'Synthwave', 'Ambient', 'Sadcore'].map((genre) => (
+                <button
+                  key={genre}
+                  onClick={() => setArtistGenreFilter(genre)}
+                  className={`px-3 py-1 rounded-lg text-xs font-mono whitespace-nowrap transition-colors ${
+                    artistGenreFilter === genre
+                      ? 'bg-[#3c0091] text-[#d0bcff] font-bold border border-[#d0bcff]/40 shadow-sm'
+                      : 'bg-[#11131b] text-[#958ea0] border border-[#33343e] hover:text-[#e2e1ee]'
+                  }`}
+                >
+                  {genre}
+                </button>
+              ))}
+            </div>
+
+            <div className="font-mono text-xs text-[#ffb95f] shrink-0">
+              8 PRIMARY ARCHIVE CREATORS
+            </div>
+          </div>
+
+          {/* Artist Dossier Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {TOP_ARTISTS.filter((artist) => {
+              if (artistGenreFilter === 'All') return true;
+              return artist.genre.toLowerCase().includes(artistGenreFilter.toLowerCase());
+            }).map((artist) => {
+              const months = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
+              const maxVal = Math.max(...artist.seasonality);
+
+              return (
+                <div
+                  key={artist.id}
+                  className="bg-[#191b24] rounded-2xl border border-[#33343e] hover:border-[#494454] p-6 space-y-5 transition-all shadow-xl group"
+                >
+                  {/* Top: Avatar, Rank, and Identity */}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-[#494454] shadow-md">
+                        <img
+                          src={artist.avatarUrl}
+                          alt={artist.name}
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-[#11131b] text-[#d0bcff] font-mono text-[10px] font-bold flex items-center justify-center border border-[#33343e]">
+                          #{artist.rank}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3 className="font-syne font-black text-lg text-[#e2e1ee] group-hover:text-[#d0bcff] transition-colors">
+                          {artist.name}
+                        </h3>
+                        <p className="font-mono text-xs text-[#958ea0]">
+                          {artist.genre}
+                        </p>
+                        <span className="inline-block mt-1 font-mono text-[10px] px-2 py-0.5 rounded bg-[#11131b] text-[#ca8100] dark:text-[#ffb95f] border border-[#ffb95f]/30">
+                          First Discovered: {artist.firstDiscovered}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right font-mono shrink-0">
+                      <div className="text-sm font-bold text-[#d0bcff]">
+                        {artist.sharePercentage}%
+                      </div>
+                      <div className="text-[10px] text-[#958ea0]">Share of Ear</div>
+                    </div>
+                  </div>
+
+                  {/* Forensic Listening Bio */}
+                  <p className="text-xs text-[#cbc3d7] font-sans leading-relaxed bg-[#11131b]/60 p-3 rounded-xl border border-[#33343e]/40">
+                    "{artist.bio}"
+                  </p>
+
+                  {/* Telemetry Metrics Row */}
+                  <div className="grid grid-cols-3 gap-2 text-center font-mono py-2 bg-[#11131b] rounded-xl border border-[#33343e]/60">
+                    <div>
+                      <div className="text-xs font-bold text-[#e2e1ee]">{artist.totalPlays}</div>
+                      <div className="text-[9px] text-[#958ea0]">AUDITED PLAYS</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-[#ffb95f]">{artist.hoursListened}h</div>
+                      <div className="text-[9px] text-[#958ea0]">TOTAL REEL</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-[#d0bcff]">#{artist.rank}</div>
+                      <div className="text-[9px] text-[#958ea0]">LIFETIME RANK</div>
+                    </div>
+                  </div>
+
+                  {/* 12-Month Seasonality Heatmap Sparkline */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-[#958ea0]">
+                      <span>12-MONTH SEASONALITY RESONANCE</span>
+                      <span className="text-[#ffb95f]">PEAK: {Math.max(...artist.seasonality)}%</span>
+                    </div>
+                    <div className="flex items-end gap-1 h-10 bg-[#11131b] p-2 rounded-lg border border-[#33343e]/60">
+                      {artist.seasonality.map((val, idx) => {
+                        const heightPct = Math.round((val / (maxVal || 1)) * 100);
+                        const isHigh = val >= 70;
+                        return (
+                          <div
+                            key={idx}
+                            className="flex-1 flex flex-col items-center justify-end h-full group/bar relative"
+                            title={`${months[idx]}: ${val}% seasonal resonance`}
+                          >
+                            <div
+                              style={{ height: `${heightPct}%` }}
+                              className={`w-full rounded-t-sm transition-all duration-300 ${
+                                isHigh
+                                  ? 'bg-[#ffb95f]'
+                                  : 'bg-[#3c0091] group-hover/bar:bg-[#d0bcff]'
+                              }`}
+                            />
+                            <span className="text-[8px] font-mono text-[#958ea0] mt-0.5 leading-none">
+                              {months[idx]}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Top Audited Tracks List with Instant Play */}
+                  <div className="space-y-2">
+                    <span className="font-mono text-[10px] text-[#958ea0] tracking-wider uppercase block">
+                      TOP AUDITED REPERTOIRE (CLICK TO STREAM)
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {artist.topTracks.map((songTitle) => (
+                        <button
+                          key={songTitle}
+                          onClick={() => onPlaySong(songTitle, artist.name)}
+                          className="px-2.5 py-1 rounded-lg bg-[#282a32] hover:bg-[#3c0091] text-[#cbc3d7] hover:text-[#d0bcff] font-mono text-xs border border-[#494454] transition-all flex items-center gap-1 group/btn shadow-sm"
+                          title={`Stream ${songTitle} by ${artist.name}`}
+                        >
+                          <span className="material-symbols-outlined text-xs text-[#ffb95f] group-hover/btn:text-white">
+                            play_arrow
+                          </span>
+                          <span>{songTitle}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dossier Actions */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-[#33343e]">
+                    <button
+                      onClick={() => onPlaySong(artist.topTracks[0], artist.name)}
+                      className="flex-1 py-2 rounded-xl bg-[#3c0091] hover:bg-[#4f319c] text-[#d0bcff] font-syne font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                    >
+                      <span className="material-symbols-outlined text-sm">play_circle</span>
+                      PLAY TOP TRACK
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSearchQuery(artist.name);
+                        setActiveCatalogMode('audited');
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-[#282a32] hover:bg-[#33343e] text-[#cbc3d7] font-mono text-xs border border-[#494454] transition-colors flex items-center gap-1"
+                      title={`Filter audited track catalog for ${artist.name}`}
+                    >
+                      <span className="material-symbols-outlined text-sm">list_alt</span>
+                      <span className="hidden sm:inline">AUDIT TRACKS</span>
+                    </button>
+                    <button
+                      onClick={() => onOpenReceipt(artist.topTracks[0])}
+                      className="px-3.5 py-2 rounded-xl bg-[#11131b] hover:bg-[#282a32] text-[#ffb95f] font-mono text-xs border border-[#33343e] transition-colors flex items-center gap-1"
+                      title="Generate itemized receipt slip"
+                    >
+                      <span className="material-symbols-outlined text-sm">receipt_long</span>
+                      <span className="hidden sm:inline">SLIP</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* VIEW MODE 2: SPOTAPI LIVE SONG QUERY & PLAYBACK */}
       {activeCatalogMode === 'spotapi' && (
         <div className="space-y-6">
           {/* Query Control Bar */}

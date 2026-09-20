@@ -83,6 +83,16 @@ export const GlobalHeader: React.FC<GlobalHeaderProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Live Archive Status Pill with Checksum */}
+        <div
+          className="hidden xl:flex items-center gap-2 bg-[#191b24] px-3 py-1 rounded-full border border-emerald-500/40 text-[11px] font-mono text-emerald-400 shadow-sm"
+          title="Cryptographic verification seal: 0x7f4a29c1e08b1a5d (99.4% integrity)"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="font-bold">ARCHIVE VERIFIED • 5.8 YRS</span>
+          <span className="text-[#958ea0] text-[10px]">| 0x7f4a...ECHO</span>
+        </div>
       </div>
 
       {/* Center: Filter Pills (Desktop) */}

@@ -1,0 +1,18 @@
+{
+  "short_name": "Echoes",
+  "name": "Echoes — Your Life, In Receipts",
+  "description": "Archival editorial music time capsule and listening telemetry ledger.",
+  "icons": [
+    {
+      "src": "/echoes-emblem.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#11131b",
+  "theme_color": "#11131b",
+  "display": "standalone",
+  "orientation": "any"
+}

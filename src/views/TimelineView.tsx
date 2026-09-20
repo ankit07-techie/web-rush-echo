@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TIMELINE_MILESTONES, USER_ARCHIVE_META } from '../data/mockData';
 import { TIMELINE_YEAR_DATA, MonthTelemetry, YearTelemetry } from '../data/timelineData';
+import { CassetteTapeReel } from '../components/CassetteTapeReel';
 
 interface TimelineViewProps {
   onOpenReceipt: (title?: string) => void;
@@ -600,70 +601,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
       {/* VIEW MODE 3: TAPE REEL VIEW */}
       {viewMode === 'tape' && (
-        <div className="bg-[#191b24] border border-[#33343e] rounded-2xl p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#33343e]/40 pb-4">
-            <div>
-              <h3 className="font-syne font-bold text-base text-[#e2e1ee] uppercase">
-                MAGNETIC TAPE SPOOL REEL ({activeYear})
-              </h3>
-              <p className="font-mono text-xs text-[#958ea0]">
-                Sequential analog magnetic capture • Total runtime: {currentYearData.totalHours} hours
-              </p>
-            </div>
-            <div className="flex items-center gap-2 font-mono text-xs text-[#ffb95f] bg-[#11131b] px-3 py-1.5 rounded-lg border border-[#33343e]">
-              <span className="material-symbols-outlined text-sm animate-spin text-[#ffb95f]">motion_photos_on</span>
-              <span>TAPE SPEED: 15 IPS HIGH-BIAS</span>
-            </div>
-          </div>
-
-          {/* Tactile Cassette Spool Deck */}
-          <div className="bg-[#11131b] border border-[#33343e] rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Left Spool */}
-            <div className="flex items-center gap-6">
-              <div className="relative w-24 h-24 rounded-full border-4 border-[#33343e] bg-[#191b24] flex items-center justify-center shadow-inner">
-                <div className="w-12 h-12 rounded-full border-2 border-[#d0bcff]/40 bg-[#11131b] flex items-center justify-center animate-spin">
-                  <div className="w-2 h-6 bg-[#d0bcff]"></div>
-                </div>
-                <span className="absolute text-[8px] font-mono text-[#958ea0] bottom-1">SIDE A</span>
-              </div>
-
-              <div className="space-y-1 font-mono text-xs">
-                <span className="text-[10px] text-[#958ea0] block">ACTIVE REEL IDENTIFIER:</span>
-                <span className="font-bold text-[#e2e1ee] text-sm">#ECHOES-TAPE-{activeYear}</span>
-                <span className="text-[#ffb95f] text-[11px] block">{currentYearData.totalPlays} Telemetry Packets</span>
-              </div>
-            </div>
-
-            {/* Center Tape Window Gauge */}
-            <div className="w-full md:w-64 bg-[#191b24] border border-[#33343e] rounded-lg p-3 text-center font-mono space-y-1">
-              <div className="text-[10px] text-[#958ea0] flex justify-between">
-                <span>00:00</span>
-                <span className="text-[#d0bcff] font-bold">ANALOG TAPE COUNTER</span>
-                <span>{currentYearData.totalHours}h</span>
-              </div>
-              <div className="w-full bg-[#11131b] h-3 rounded-full overflow-hidden border border-[#33343e]">
-                <div className="bg-gradient-to-r from-[#3c0091] via-[#d0bcff] to-[#ffb95f] h-full w-3/4"></div>
-              </div>
-              <span className="text-[9px] text-[#958ea0] block">BIAS CALIBRATION: OPTIMAL</span>
-            </div>
-
-            {/* Right Spool */}
-            <div className="flex items-center gap-6">
-              <div className="space-y-1 font-mono text-xs text-right">
-                <span className="text-[10px] text-[#958ea0] block">LEAD TRACK:</span>
-                <span className="font-bold text-[#d0bcff] text-sm">{currentYearData.topTrackAnchor}</span>
-                <span className="text-[#cbc3d7] text-[11px] block">{currentYearData.topArtistAnchor}</span>
-              </div>
-
-              <div className="relative w-24 h-24 rounded-full border-4 border-[#33343e] bg-[#191b24] flex items-center justify-center shadow-inner">
-                <div className="w-12 h-12 rounded-full border-2 border-[#ffb95f]/40 bg-[#11131b] flex items-center justify-center animate-spin">
-                  <div className="w-6 h-2 bg-[#ffb95f]"></div>
-                </div>
-                <span className="absolute text-[8px] font-mono text-[#958ea0] bottom-1">SIDE B</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CassetteTapeReel
+          activeYear={activeYear}
+          totalHours={currentYearData.totalHours}
+          totalPlays={currentYearData.totalPlays}
+          months={currentYearData.months}
+          onPlaySong={onPlaySong}
+        />
       )}
 
       {/* 4. Split Layout: Milestone Cards vs Time Travel Ledger */}

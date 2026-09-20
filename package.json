@@ -1,14 +1,16 @@
 {
-  "name": "react-example",
+  "name": "echoes-sonic-archive",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.4.0",
+  "description": "Personal sonic archive, listening telemetry ledger, and interactive audio laboratory.",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "node --test --import tsx src/**/*.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

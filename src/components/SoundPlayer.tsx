@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { AudioVisualizerLab, HarmonicDronePreset, HARMONIC_PRESETS } from './AudioVisualizerLab';
 
 export interface PlayerTrack {
   title: string;
@@ -32,11 +33,16 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
   const [isLooping, setIsLooping] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [playbackMode, setPlaybackMode] = useState<'preview' | 'spotify' | 'synth'>('preview');
+  const [showVisualizerLab, setShowVisualizerLab] = useState(false);
+  const [activePreset, setActivePreset] = useState<HarmonicDronePreset>(HARMONIC_PRESETS[0]);
+  const [filterCutoff, setFilterCutoff] = useState(1800);
+  const [filterResonance, setFilterResonance] = useState(2.5);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const oscRef = useRef<OscillatorNode[]>([]);
   const gainRef = useRef<GainNode | null>(null);
+  const filterNodeRef = useRef<BiquadFilterNode | null>(null);
   const onTogglePlayRef = useRef(onTogglePlay);
   const isLoopingRef = useRef(isLooping);
   const lastLoadedUrlRef = useRef<string | null>(null);
@@ -172,19 +178,26 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
 
           const masterGain = ctx.createGain();
           masterGain.gain.setValueAtTime(isMuted ? 0 : volume * 0.04, ctx.currentTime);
+          
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(filterCutoff, ctx.currentTime);
+          filter.Q.setValueAtTime(filterResonance, ctx.currentTime);
+          filterNodeRef.current = filter;
+
+          filter.connect(masterGain);
           masterGain.connect(ctx.destination);
           gainRef.current = masterGain;
 
-          // Warm harmonic chord (F# minor ambient chord: F#2, C#3, A3, E4)
-          const frequencies = [92.5, 138.59, 220.0, 329.63];
-          frequencies.forEach((freq, idx) => {
+          // Harmonic synthesizer chord based on selected preset
+          activePreset.frequencies.forEach((freq, idx) => {
             const osc = ctx.createOscillator();
             const oscGain = ctx.createGain();
-            osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+            osc.type = activePreset.waveform;
             osc.frequency.setValueAtTime(freq + (idx * 0.4), ctx.currentTime);
             oscGain.gain.setValueAtTime(0.03 / (idx + 1), ctx.currentTime);
             osc.connect(oscGain);
-            oscGain.connect(masterGain);
+            oscGain.connect(filter);
             osc.start();
             oscRef.current.push(osc);
           });
@@ -208,7 +221,7 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
         oscRef.current = [];
       }, 300);
     }
-  }, [isPlaying, playbackMode, currentTrack, volume, isMuted]);
+  }, [isPlaying, playbackMode, currentTrack, volume, isMuted, activePreset]);
 
   // Clean up on unmount
   useEffect(() => {
@@ -509,11 +522,40 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
                 {isLooping ? 'LOOP: ON' : 'LOOP: OFF'}
               </button>
 
+              <button
+                id="btn-toggle-visualizer-lab"
+                onClick={() => setShowVisualizerLab((prev) => !prev)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-mono font-medium transition-all ${
+                  showVisualizerLab
+                    ? 'border-[#d0bcff] text-[#d0bcff] bg-[#3c0091]/30 font-bold'
+                    : 'border-[#33343e] text-[#958ea0] hover:text-[#e2e1ee] hover:border-[#494454]'
+                }`}
+                title="Toggle Web Audio Canvas Visualizer & Synthesizer Lab"
+              >
+                <span className="material-symbols-outlined text-sm">tune</span>
+                {showVisualizerLab ? 'LAB: OPEN' : 'LAB: CLOSED'}
+              </button>
+
               <span className="text-[10px] text-[#958ea0]">
                 {hasAudioPreview ? '30S HIGH-RES STREAM' : 'SYNTH HARMONIZER'}
               </span>
             </div>
           </div>
+
+          {/* Interactive Web Audio Visualizer & Harmonic Synthesis Lab */}
+          {showVisualizerLab && (
+            <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+              <AudioVisualizerLab
+                isPlaying={isPlaying}
+                activePresetId={activePreset.id}
+                onPresetChange={(preset) => setActivePreset(preset)}
+                onFilterChange={(cutoff, resonance) => {
+                  setFilterCutoff(cutoff);
+                  setFilterResonance(resonance);
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
     </aside>
