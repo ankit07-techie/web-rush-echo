@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+  --font-syne: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-surface: #11131b;
+  --color-surface-dim: #11131b;
+  --color-surface-bright: #373942;
+  --color-surface-container-lowest: #0c0e16;
+  --color-surface-container-low: #191b24;
+  --color-surface-container: #1d1f28;
+  --color-surface-container-high: #282a32;
+  --color-surface-container-highest: #33343e;
+  --color-on-surface: #e2e1ee;
+  --color-on-surface-variant: #cbc3d7;
+  --color-outline: #958ea0;
+  --color-outline-variant: #494454;
+  --color-primary: #d0bcff;
+  --color-on-primary: #3c0091;
+  --color-primary-container: #a078ff;
+  --color-secondary: #cebdff;
+  --color-on-secondary: #381385;
+  --color-secondary-container: #4f319c;
+  --color-tertiary: #ffb95f;
+  --color-on-tertiary: #472a00;
+  --color-tertiary-container: #ca8100;
+  --color-error: #ffb4ab;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #11131b;
+  color: #e2e1ee;
+}
+
+.font-syne {
+  font-family: var(--font-syne);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Material Symbols alignment helper */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.material-symbols-outlined.fill-1 {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Thermal receipt sawtooth bottom edge */
+.receipt-sawtooth-bottom {
+  background-image: radial-gradient(circle at 10px -5px, transparent 12px, #1d1f28 13px);
+  background-size: 20px 20px;
+  background-repeat: repeat-x;
+  height: 14px;
+}
+
+.receipt-sawtooth-paper {
+  background-image: radial-gradient(circle at 8px -4px, transparent 10px, #ffffff 11px);
+  background-size: 16px 16px;
+  background-repeat: repeat-x;
+  height: 12px;
+}
+
+.receipt-sawtooth-paper-dark {
+  background-image: radial-gradient(circle at 8px -4px, transparent 10px, #191b24 11px);
+  background-size: 16px 16px;
+  background-repeat: repeat-x;
+  height: 12px;
+}
+
+/* Dotted receipt leader */
+.dotted-leader {
+  flex-grow: 1;
+  border-bottom: 1px dashed rgba(203, 195, 215, 0.25);
+  margin: 0 8px;
+  height: 1px;
+  align-self: center;
+}
+
+.dotted-leader-dark {
+  flex-grow: 1;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.35);
+  margin: 0 8px;
+  height: 1px;
+  align-self: center;
+}
+
+/* Custom Scrollbar for receipt and timeline scrollers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #11131b;
+}
+::-webkit-scrollbar-thumb {
+  background: #33343e;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #494454;
+}

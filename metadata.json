@@ -1,0 +1,7 @@
+{
+  "name": "Echoes",
+  "description": "Your life, in music. An archival editorial music time capsule and listening telemetry ledger.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
