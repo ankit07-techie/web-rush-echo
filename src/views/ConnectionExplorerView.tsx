@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { GRAPH_NODES, GRAPH_EDGES } from '../data/mockData';
 import { GraphNode, GraphEdge } from '../types';
 
@@ -16,19 +16,75 @@ export const ConnectionExplorerView: React.FC<ConnectionExplorerViewProps> = ({
   const [filterType, setFilterType] = useState<string>('all');
   const [viewStyle, setViewStyle] = useState<'constellation' | 'ring' | 'chord'>('constellation');
 
-  const selectedNode = GRAPH_NODES.find((n) => n.id === selectedNodeId) || GRAPH_NODES[0];
+  // Dynamically calculate node positions depending on the view style
+  const layoutNodes = useMemo(() => {
+    const cx = 475;
+    const cy = 270;
+
+    if (viewStyle === 'constellation') {
+      return GRAPH_NODES.map((n) => ({ ...n }));
+    }
+
+    if (viewStyle === 'ring') {
+      // 3 concentric rings:
+      // Inner (era + habit): r = 85
+      // Middle (artists): r = 180
+      // Outer (songs): r = 265
+      const innerNodes = GRAPH_NODES.filter((n) => n.type === 'era' || n.type === 'habit');
+      const middleNodes = GRAPH_NODES.filter((n) => n.type === 'artist');
+      const outerNodes = GRAPH_NODES.filter((n) => n.type === 'song');
+
+      const placeInCircle = (nodes: GraphNode[], r: number, angleOffset: number = 0) => {
+        return nodes.map((n, i) => {
+          const angle = angleOffset + (i / nodes.length) * 2 * Math.PI - Math.PI / 2;
+          return {
+            ...n,
+            x: Math.round(cx + r * Math.cos(angle)),
+            y: Math.round(cy + r * Math.sin(angle)),
+          };
+        });
+      };
+
+      const innerPlaced = placeInCircle(innerNodes, 85, 0);
+      const middlePlaced = placeInCircle(middleNodes, 180, Math.PI / 7);
+      const outerPlaced = placeInCircle(outerNodes, 265, Math.PI / 5);
+
+      return [...innerPlaced, ...middlePlaced, ...outerPlaced];
+    }
+
+    if (viewStyle === 'chord') {
+      // Perimeter circle ring layout: r = 225
+      const total = GRAPH_NODES.length;
+      return GRAPH_NODES.map((n, i) => {
+        const angle = (i / total) * 2 * Math.PI - Math.PI / 2;
+        return {
+          ...n,
+          x: Math.round(cx + 225 * Math.cos(angle)),
+          y: Math.round(cy + 225 * Math.sin(angle)),
+        };
+      });
+    }
+
+    return GRAPH_NODES;
+  }, [viewStyle]);
+
+  const selectedNode = layoutNodes.find((n) => n.id === selectedNodeId) || layoutNodes[0];
   const selectedEdge = GRAPH_EDGES.find((e) => e.id === selectedEdgeId) || GRAPH_EDGES[0];
 
-  const filteredNodes = GRAPH_NODES.filter((n) => {
-    if (filterType === 'all') return true;
-    if (filterType === 'artist') return n.type === 'artist';
-    if (filterType === 'song') return n.type === 'song';
-    if (filterType === 'era') return n.type === 'era';
-    if (filterType === 'habit') return n.type === 'habit';
-    return true;
-  });
+  const filteredNodes = useMemo(() => {
+    return layoutNodes.filter((n) => {
+      if (filterType === 'all') return true;
+      if (filterType === 'artist') return n.type === 'artist';
+      if (filterType === 'song') return n.type === 'song';
+      if (filterType === 'era') return n.type === 'era';
+      if (filterType === 'habit') return n.type === 'habit';
+      return true;
+    });
+  }, [layoutNodes, filterType]);
 
-  const nodeMap = new Map(GRAPH_NODES.map((n) => [n.id, n]));
+  const nodeMap = useMemo(() => {
+    return new Map(layoutNodes.map((n) => [n.id, n]));
+  }, [layoutNodes]);
 
   return (
     <div id="connection-explorer-view" className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
@@ -133,6 +189,26 @@ export const ConnectionExplorerView: React.FC<ConnectionExplorerViewProps> = ({
                 </radialGradient>
               </defs>
 
+              {/* Background Guide Rings for Ring View */}
+              {viewStyle === 'ring' && (
+                <g className="pointer-events-none opacity-20">
+                  <circle cx="475" cy="270" r="85" fill="none" stroke="#d0bcff" strokeDasharray="3 3" />
+                  <circle cx="475" cy="270" r="180" fill="none" stroke="#ffb95f" strokeDasharray="4 4" />
+                  <circle cx="475" cy="270" r="265" fill="none" stroke="#cebdff" strokeDasharray="4 4" />
+                  <text x="475" y="195" fill="#d0bcff" fontSize="9" textAnchor="middle" fontFamily="JetBrains Mono">ERA CORE</text>
+                  <text x="475" y="100" fill="#ffb95f" fontSize="9" textAnchor="middle" fontFamily="JetBrains Mono">ARTIST RING</text>
+                  <text x="475" y="15" fill="#cebdff" fontSize="9" textAnchor="middle" fontFamily="JetBrains Mono">SIGNATURE TRACKS</text>
+                </g>
+              )}
+
+              {/* Background Guide Perimeter for Chord View */}
+              {viewStyle === 'chord' && (
+                <g className="pointer-events-none opacity-20">
+                  <circle cx="475" cy="270" r="225" fill="none" stroke="#d0bcff" strokeDasharray="4 4" />
+                  <circle cx="475" cy="270" r="6" fill="#d0bcff" opacity="0.5" />
+                </g>
+              )}
+
               {/* Edge Vectors */}
               {GRAPH_EDGES.map((edge) => {
                 const source = nodeMap.get(edge.source);
@@ -143,6 +219,31 @@ export const ConnectionExplorerView: React.FC<ConnectionExplorerViewProps> = ({
                 const isNodeConnected =
                   selectedNodeId === edge.source || selectedNodeId === edge.target;
 
+                const strokeColor = isEdgeSelected
+                  ? '#ffb95f'
+                  : isNodeConnected
+                  ? '#d0bcff'
+                  : '#33343e';
+
+                const strokeW = isEdgeSelected ? 3 : isNodeConnected ? 2 : 1;
+                const strokeDash = isEdgeSelected ? 'none' : '4 4';
+
+                if (viewStyle === 'chord') {
+                  const pathData = `M ${source.x} ${source.y} Q 475 270 ${target.x} ${target.y}`;
+                  return (
+                    <g key={edge.id} className="cursor-pointer" onClick={() => setSelectedEdgeId(edge.id)}>
+                      <path
+                        d={pathData}
+                        fill="none"
+                        stroke={strokeColor}
+                        strokeWidth={strokeW}
+                        strokeDasharray={strokeDash}
+                        className="transition-all duration-300 hover:stroke-[#ffb95f]"
+                      />
+                    </g>
+                  );
+                }
+
                 return (
                   <g key={edge.id} className="cursor-pointer" onClick={() => setSelectedEdgeId(edge.id)}>
                     <line
@@ -150,15 +251,9 @@ export const ConnectionExplorerView: React.FC<ConnectionExplorerViewProps> = ({
                       y1={source.y}
                       x2={target.x}
                       y2={target.y}
-                      stroke={
-                        isEdgeSelected
-                          ? '#ffb95f'
-                          : isNodeConnected
-                          ? '#d0bcff'
-                          : '#33343e'
-                      }
-                      strokeWidth={isEdgeSelected ? 3 : isNodeConnected ? 2 : 1}
-                      strokeDasharray={isEdgeSelected ? 'none' : '4 4'}
+                      stroke={strokeColor}
+                      strokeWidth={strokeW}
+                      strokeDasharray={strokeDash}
                       className="transition-all duration-300 hover:stroke-[#ffb95f]"
                     />
                   </g>

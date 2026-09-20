@@ -109,3 +109,33 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #494454;
 }
+
+/* Dedicated Print Layout for Thermal Paper Receipts */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  #global-header,
+  #navigation-sidebar,
+  #sound-capsule-player,
+  .md\:hidden,
+  button,
+  .receipt-controls {
+    display: none !important;
+  }
+  #receipt-modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  #printable-receipt {
+    box-shadow: none !important;
+    border: 1px solid #1c1b1f !important;
+    background: #ffffff !important;
+    color: #1c1b1f !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid;
+  }
+}

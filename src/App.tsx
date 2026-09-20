@@ -32,6 +32,19 @@ export default function App() {
     spotifyId: '3BQHpFgAp4l80e1XGRIjnv',
   });
   const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const [isPlayerVisible, setIsPlayerVisible] = useState(true);
+
+  // Global Keyboard Shortcut: Cmd+K / Ctrl+K for search palette
+  React.useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   const handleOpenReceipt = (trackTitle?: string) => {
     setReceiptTrackTitle(trackTitle);
@@ -39,12 +52,13 @@ export default function App() {
   };
 
   const handlePlaySong = async (title: string, artist: string) => {
-    // Immediately set basic track state so the UI responds instantly
+    // Immediately set basic track state and make player visible
     setCurrentTrack({
       title,
       artist,
       duration: '3:45',
     });
+    setIsPlayerVisible(true);
     setIsPlayingSound(true);
 
     // Resolve audio preview stream and Spotify metadata asynchronously
@@ -68,6 +82,11 @@ export default function App() {
   };
 
   const handleToggleSound = () => {
+    if (!isPlayerVisible) {
+      setIsPlayerVisible(true);
+      setIsPlayingSound(true);
+      return;
+    }
     setIsPlayingSound((prev) => !prev);
   };
 
@@ -192,12 +211,17 @@ export default function App() {
       </div>
 
       {/* Interactive Sound Capsule Player */}
-      <SoundPlayer
-        currentTrack={currentTrack}
-        isPlaying={isPlayingSound}
-        onTogglePlay={handleToggleSound}
-        onClose={() => setIsPlayingSound(false)}
-      />
+      {isPlayerVisible && currentTrack && (
+        <SoundPlayer
+          currentTrack={currentTrack}
+          isPlaying={isPlayingSound}
+          onTogglePlay={handleToggleSound}
+          onClose={() => {
+            setIsPlayingSound(false);
+            setIsPlayerVisible(false);
+          }}
+        />
+      )}
 
       {/* Full Thermal Paper Receipt Modal */}
       <ReceiptModal

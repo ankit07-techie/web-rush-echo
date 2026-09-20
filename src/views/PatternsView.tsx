@@ -7,6 +7,15 @@ interface PatternsViewProps {
   onPlaySong: (title: string, artist: string) => void;
 }
 
+const PATTERN_CATALYSTS: Record<string, { title: string; artist: string }> = {
+  'p-01': { title: 'Kyoto', artist: 'Phoebe Bridgers' },
+  'p-02': { title: 'Holocene', artist: 'Bon Iver' },
+  'p-03': { title: 'Midnight City', artist: 'M83' },
+  'p-04': { title: 'Glue', artist: 'Bicep' },
+  'p-05': { title: 'Rumble', artist: 'Fred again..' },
+  'p-06': { title: 'On The Nature of Daylight', artist: 'Max Richter' },
+};
+
 export const PatternsView: React.FC<PatternsViewProps> = ({
   onOpenReceipt,
   onPlaySong
@@ -18,6 +27,8 @@ export const PatternsView: React.FC<PatternsViewProps> = ({
     setSelectedPattern(pattern);
     setDrawerOpen(true);
   };
+
+  const activeCatalyst = PATTERN_CATALYSTS[selectedPattern.id] || { title: 'Holocene', artist: 'Bon Iver' };
 
   return (
     <div id="patterns-view" className="p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
@@ -92,14 +103,28 @@ export const PatternsView: React.FC<PatternsViewProps> = ({
               </p>
             </div>
 
-            {/* Inspect Receipt Tape Action */}
-            <button
-              onClick={() => handleInspectPattern(pattern)}
-              className="w-full py-2.5 rounded-xl bg-[#282a32] hover:bg-[#3c0091] text-[#cbc3d7] hover:text-[#d0bcff] font-syne text-xs font-bold uppercase tracking-wider border border-[#494454] hover:border-[#d0bcff]/40 transition-all flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-sm">receipt_long</span>
-              REVEAL ARCHIVAL RECEIPT
-            </button>
+            {/* Card Actions: Replay Catalyst and Reveal Receipt */}
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => {
+                  const cat = PATTERN_CATALYSTS[pattern.id] || { title: 'Holocene', artist: 'Bon Iver' };
+                  onPlaySong(cat.title, cat.artist);
+                }}
+                className="px-3 py-2 rounded-xl bg-[#11131b] hover:bg-[#3c0091]/30 text-[#d0bcff] hover:text-white font-syne text-xs font-bold uppercase tracking-wider border border-[#33343e] hover:border-[#d0bcff]/40 transition-all flex items-center justify-center gap-1.5"
+                title={`Play Catalyst: ${(PATTERN_CATALYSTS[pattern.id] || { title: 'Holocene' }).title}`}
+              >
+                <span className="material-symbols-outlined text-sm">play_arrow</span>
+                <span className="hidden sm:inline">PLAY</span>
+              </button>
+
+              <button
+                onClick={() => handleInspectPattern(pattern)}
+                className="flex-1 py-2 rounded-xl bg-[#282a32] hover:bg-[#3c0091] text-[#cbc3d7] hover:text-[#d0bcff] font-syne text-xs font-bold uppercase tracking-wider border border-[#494454] hover:border-[#d0bcff]/40 transition-all flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">receipt_long</span>
+                REVEAL ARCHIVAL RECEIPT
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -180,13 +205,14 @@ export const PatternsView: React.FC<PatternsViewProps> = ({
             <div className="pt-6 border-t border-[#33343e] flex gap-3">
               <button
                 onClick={() => {
-                  onPlaySong('Holocene', 'Bon Iver');
+                  onPlaySong(activeCatalyst.title, activeCatalyst.artist);
                   setDrawerOpen(false);
                 }}
                 className="flex-1 py-2.5 rounded-xl bg-[#3c0091] hover:bg-[#4f319c] text-[#d0bcff] font-syne font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"
+                title={`Play ${activeCatalyst.title} by ${activeCatalyst.artist}`}
               >
                 <span className="material-symbols-outlined text-sm">play_arrow</span>
-                REPLAY CATALYST
+                REPLAY CATALYST: {activeCatalyst.title.toUpperCase()}
               </button>
               <button
                 onClick={() => {

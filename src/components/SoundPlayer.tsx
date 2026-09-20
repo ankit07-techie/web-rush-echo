@@ -37,6 +37,12 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
   const audioCtxRef = useRef<AudioContext | null>(null);
   const oscRef = useRef<OscillatorNode[]>([]);
   const gainRef = useRef<GainNode | null>(null);
+  const onTogglePlayRef = useRef(onTogglePlay);
+  const lastLoadedUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    onTogglePlayRef.current = onTogglePlay;
+  }, [onTogglePlay]);
 
   // Setup HTML Audio element for real preview playback
   useEffect(() => {
@@ -57,45 +63,51 @@ export const SoundPlayer: React.FC<SoundPlayerProps> = ({
 
       audio.onended = () => {
         if (!audio.loop) {
-          onTogglePlay();
+          onTogglePlayRef.current();
         }
       };
     }
-  }, [onTogglePlay]);
+  }, []);
 
-  // Handle source changes when currentTrack updates
+  // Handle track source changes
   useEffect(() => {
-    if (audioRef.current) {
-      if (currentTrack?.previewUrl) {
-        audioRef.current.src = currentTrack.previewUrl;
-        audioRef.current.volume = isMuted ? 0 : volume;
-        audioRef.current.loop = isLooping;
-        if (isPlaying && playbackMode === 'preview') {
-          audioRef.current.play().catch((err) => {
-            console.warn('Audio play request interrupted:', err);
-          });
-        }
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    const nextUrl = currentTrack?.previewUrl || '';
+
+    if (nextUrl !== lastLoadedUrlRef.current) {
+      lastLoadedUrlRef.current = nextUrl;
+      setCurrentTime(0);
+      if (nextUrl) {
+        audio.src = nextUrl;
+        audio.load();
       } else {
-        audioRef.current.pause();
-        audioRef.current.src = '';
+        audio.pause();
+        audio.removeAttribute('src');
       }
     }
   }, [currentTrack?.previewUrl]);
 
-  // Handle play/pause and volume changes
+  // Handle play/pause, volume, loop, and playback mode safely
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-      audioRef.current.loop = isLooping;
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
 
-      if (playbackMode === 'preview' && currentTrack?.previewUrl) {
-        if (isPlaying) {
-          audioRef.current.play().catch((e) => console.warn('Audio play error:', e));
-        } else {
-          audioRef.current.pause();
-        }
-      } else {
-        audioRef.current.pause();
+    audio.volume = isMuted ? 0 : volume;
+    audio.loop = isLooping;
+
+    if (isPlaying && playbackMode === 'preview' && currentTrack?.previewUrl) {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          if (err.name !== 'AbortError') {
+            console.warn('Audio playback notice:', err.message);
+          }
+        });
+      }
+    } else {
+      if (!audio.paused) {
+        audio.pause();
       }
     }
   }, [isPlaying, playbackMode, volume, isMuted, isLooping, currentTrack?.previewUrl]);
